@@ -1,7 +1,12 @@
 .{
     .name = .modernc,
     .version = "0.15.0-dev.1425+7ee6dab39",
-    .dependencies = .{},
+    .dependencies = .{
+        .translate_c = .{
+            .url = "git+https://codeberg.org/ziglang/translate-c#55f225f0a37b9627d459ed23b7df21f458f492d9",
+            .hash = "translate_c-0.0.0-Q_BUWiXPBgCqfEXedH5sBi-b7cXu2byRtLBosZuFAyX0",
+        },
+    },
     .paths = .{""},
     .fingerprint = 0x9655539d5c4ff9f8,
 }

@@ -1,4 +1,5 @@
 const std = @import("std");
+const Translator = @import("translate_c").Translator;
 const Build = std.Build;
 const LazyPath = Build.LazyPath;
 const Query = std.Target.Query;
@@ -23,11 +24,15 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const c_translate = b.addTranslateC(.{
-        .root_source_file = b.path("src/c_lib.h"),
+    const translate_c = b.dependency("translate_c", .{
         .optimize = optimize,
         .target = target,
-        .use_clang = true,
+    });
+
+    const clib: Translator = .init(translate_c, .{
+        .c_source_file = b.path("src/c_lib.h"),
+        .target = target,
+        .optimize = optimize,
     });
 
     var compile_txt_buf: [max_compile_flags][]const u8 = undefined;
@@ -56,7 +61,7 @@ pub fn build(b: *std.Build) !void {
             // TODO: enable setting debug options for easy debugin
             else => {},
         }
-        mod.addImport("c", c_translate.createModule());
+        mod.addImport("c", clib.mod);
         mod.addCSourceFile(.{ .file = b.path(source), .flags = cflags });
 
         const exe = b.addExecutable(.{
