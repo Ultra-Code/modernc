@@ -23,15 +23,23 @@ enum corvid : uint8_t {
   corvid_num,
 };
 
+#if defined(__clang__) && __clang_major__ < 22
 // BUG: Takeaway 5.6.5
 // NOTE: constexpr in macros with compound literals don't work as of
-// clang 20.1.2
-static constexpr char CORVID_NAME[corvid_num][8] = {
+// clang 21.1.0
+static constexpr char CORVID_NAMES[corvid_num][8] = {
     [chough] = "chough",
     [raven] = "raven",
     [magpie] = "magpie",
     [jay] = "jay",
 };
+#else
+#define CORVID_NAMES /**/                                                      \
+  (constexpr char[8][corvid_num]) {                                            \
+    [chough] = "chough", [raven] = "raven", [magpie] = "magpie",               \
+    [jay] = "jay",                                                             \
+  }
+#endif
 
 static void literals();
 static void use_choose();
@@ -40,7 +48,7 @@ extern void cMain();
 
 void cMain() {
   for (size_t index = 0; index < corvid_num; ++index) {
-    printf("Corvid %zu is the %s\n", index, CORVID_NAME[index]);
+    printf("Corvid %zu is the %s\n", index, CORVID_NAMES[index]);
   }
   literals();
   use_choose();
@@ -138,7 +146,9 @@ static void literals() {
   uint32_t const n32 = 78;
 
 #if __STDC_VERSION__ >= 202311L
-#if defined(__clang__) && __clang_major__ >= 21
+// https://github.com/llvm/llvm-project/issues/116962
+// Hopefully the printf lenght modifers would be implemented in clang >= 22
+#if defined(__clang__) && __clang_major__ >= 22
   printf("n is %w32u, and big is %w64d \n", n32, big);
 #else
   printf("n is %" PRIu32 " , and big is %" PRIi64 "\n", n32, big);
@@ -157,7 +167,7 @@ static void literals() {
       max4u - max3u;                                           // 0b 1000
   constexpr signed _BitInt(4) max4s = max3u;                   // 0b 0111
   constexpr signed _BitInt(4) min4s [[maybe_unused]] = ~max4s; // 0b 1000
-#if defined(__clang__) && __clang_major__ >= 21
+#if defined(__clang__) && __clang_major__ >= 22
   printf("max3u is %w3d, and max4u is %w4d \n", max3u, max4u);
 #endif
 
